@@ -14,7 +14,7 @@ pipeline {
         stage('Checkout') {
             steps {
                 checkout scm
-                echo "✅ Code checked out from main branch"
+                echo "✅ Code checked out from GitHub"
             }
         }
 
@@ -23,13 +23,13 @@ pipeline {
                 echo "📦 Creating deployment ZIP..."
 
                 bat """
-                if exist %ZIP_NAME% del /f /q %ZIP_NAME%
+                if exist "%ZIP_NAME%" del /f /q "%ZIP_NAME%"
 
                 powershell -Command ^
                 "Compress-Archive -Path * -DestinationPath '%ZIP_NAME%' -Force"
                 """
 
-                echo "✅ ZIP created: ${ZIP_NAME}"
+                echo "✅ ZIP Created: ${ZIP_NAME}"
             }
         }
 
@@ -38,26 +38,24 @@ pipeline {
                 echo "☁️ Uploading ZIP to S3..."
 
                 withCredentials([
-                    string(credentialsId: 'AWS_ACCESS_KEY_ID', variable: 'AWS_ACCESS_KEY_ID'),
-                    string(credentialsId: 'AWS_SECRET_ACCESS_KEY', variable: 'AWS_SECRET_ACCESS_KEY')
+                    [$class: 'AmazonWebServicesCredentialsBinding', credentialsId: 'aws']
                 ]) {
 
                     bat """
-                    aws s3 cp %ZIP_NAME% s3://%S3_BUCKET%/deployments/%ZIP_NAME% --region %AWS_DEFAULT_REGION%
+                    aws s3 cp "%ZIP_NAME%" s3://%S3_BUCKET%/deployments/%ZIP_NAME% --region %AWS_DEFAULT_REGION%
                     """
                 }
 
-                echo "✅ Upload complete"
+                echo "✅ Upload Complete"
             }
         }
 
         stage('Deploy to Elastic Beanstalk') {
             steps {
-                echo "🚀 Deploying to Elastic Beanstalk..."
+                echo "🚀 Deploying..."
 
                 withCredentials([
-                    string(credentialsId: 'AWS_ACCESS_KEY_ID', variable: 'AWS_ACCESS_KEY_ID'),
-                    string(credentialsId: 'AWS_SECRET_ACCESS_KEY', variable: 'AWS_SECRET_ACCESS_KEY')
+                    [$class: 'AmazonWebServicesCredentialsBinding', credentialsId: 'aws']
                 ]) {
 
                     bat """
@@ -82,21 +80,20 @@ pipeline {
                     """
                 }
 
-                echo "✅ Deployment completed"
+                echo "✅ Deployment Finished"
             }
         }
 
         stage('Health Check') {
             steps {
-                echo "🏥 Checking environment..."
+                echo "🏥 Checking Environment..."
 
                 withCredentials([
-                    string(credentialsId: 'AWS_ACCESS_KEY_ID', variable: 'AWS_ACCESS_KEY_ID'),
-                    string(credentialsId: 'AWS_SECRET_ACCESS_KEY', variable: 'AWS_SECRET_ACCESS_KEY')
+                    [$class: 'AmazonWebServicesCredentialsBinding', credentialsId: 'aws']
                 ]) {
 
                     bat """
-                    echo ===== Environment Health =====
+                    echo ===== HEALTH =====
 
                     aws elasticbeanstalk describe-environments ^
                       --environment-names "%EB_ENV_NAME%" ^
@@ -106,7 +103,7 @@ pipeline {
 
                     echo.
 
-                    echo ===== Application URL =====
+                    echo ===== URL =====
 
                     aws elasticbeanstalk describe-environments ^
                       --environment-names "%EB_ENV_NAME%" ^
@@ -122,18 +119,18 @@ pipeline {
     post {
 
         success {
-            echo "🎉 Pipeline SUCCESS - Build #${BUILD_NUMBER} deployed successfully."
+            echo "🎉 Deployment Successful!"
         }
 
         failure {
-            echo "❌ Pipeline FAILED."
+            echo "❌ Deployment Failed!"
         }
 
         always {
             bat """
-            if exist %ZIP_NAME% del /f /q %ZIP_NAME%
+            if exist "%ZIP_NAME%" del /f /q "%ZIP_NAME%"
             """
-            echo "🧹 Cleaned up ZIP."
+            echo "🧹 Workspace Cleaned"
         }
     }
 }
