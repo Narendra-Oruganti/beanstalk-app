@@ -9,10 +9,6 @@ pipeline {
         ZIP_NAME           = "beanstalk-deploy-${BUILD_NUMBER}.zip"
     }
 
-    triggers {
-        githubPush()
-    }
-
     stages {
 
         stage('Checkout') {
