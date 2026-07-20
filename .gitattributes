@@ -1,0 +1,6 @@
+* text=auto
+
+Procfile text eol=lf
+*.py text eol=lf
+*.config text eol=lf
+*.sh text eol=lf
