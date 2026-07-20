@@ -20,63 +20,63 @@ pipeline {
 
         stage('Package') {
             steps {
-                echo "📦 Creating deployment ZIP..."
+                echo "📦 Creating deployment ZIP using Git Archive..."
 
                 bat """
                 if exist "%ZIP_NAME%" del /f /q "%ZIP_NAME%"
 
+                git archive --format=zip --output="%ZIP_NAME%" HEAD
+
+                echo.
+                echo ===== ZIP CONTENTS =====
                 powershell -Command ^
-                "Compress-Archive -Path * -DestinationPath '%ZIP_NAME%' -Force"
+                "Add-Type -AssemblyName System.IO.Compression.FileSystem; ^
+                [System.IO.Compression.ZipFile]::OpenRead('%ZIP_NAME%').Entries | ^
+                Select-Object FullName,Length | Format-Table -AutoSize"
                 """
 
-                echo "✅ ZIP Created: ${ZIP_NAME}"
+                echo "✅ ZIP Created Successfully"
             }
         }
 
         stage('Upload to S3') {
             steps {
-                echo "☁️ Uploading ZIP to S3..."
-
                 withCredentials([
                     [$class: 'AmazonWebServicesCredentialsBinding', credentialsId: 'aws']
                 ]) {
-
                     bat """
                     aws s3 cp "%ZIP_NAME%" s3://%S3_BUCKET%/deployments/%ZIP_NAME% --region %AWS_DEFAULT_REGION%
                     """
                 }
 
-                echo "✅ Upload Complete"
+                echo "✅ Uploaded to S3"
             }
         }
 
         stage('Deploy to Elastic Beanstalk') {
             steps {
-                echo "🚀 Deploying..."
-
                 withCredentials([
                     [$class: 'AmazonWebServicesCredentialsBinding', credentialsId: 'aws']
                 ]) {
-
                     bat """
                     aws elasticbeanstalk create-application-version ^
-                      --application-name "%EB_APP_NAME%" ^
-                      --version-label "v-build-%BUILD_NUMBER%" ^
-                      --source-bundle S3Bucket="%S3_BUCKET%",S3Key="deployments/%ZIP_NAME%" ^
-                      --region %AWS_DEFAULT_REGION%
+                        --application-name "%EB_APP_NAME%" ^
+                        --version-label "v-build-%BUILD_NUMBER%" ^
+                        --source-bundle S3Bucket="%S3_BUCKET%",S3Key="deployments/%ZIP_NAME%" ^
+                        --region %AWS_DEFAULT_REGION%
 
                     aws elasticbeanstalk update-environment ^
-                      --application-name "%EB_APP_NAME%" ^
-                      --environment-name "%EB_ENV_NAME%" ^
-                      --version-label "v-build-%BUILD_NUMBER%" ^
-                      --region %AWS_DEFAULT_REGION%
+                        --application-name "%EB_APP_NAME%" ^
+                        --environment-name "%EB_ENV_NAME%" ^
+                        --version-label "v-build-%BUILD_NUMBER%" ^
+                        --region %AWS_DEFAULT_REGION%
 
                     echo Waiting for deployment...
 
                     aws elasticbeanstalk wait environment-updated ^
-                      --application-name "%EB_APP_NAME%" ^
-                      --environment-names "%EB_ENV_NAME%" ^
-                      --region %AWS_DEFAULT_REGION%
+                        --application-name "%EB_APP_NAME%" ^
+                        --environment-names "%EB_ENV_NAME%" ^
+                        --region %AWS_DEFAULT_REGION%
                     """
                 }
 
@@ -86,30 +86,24 @@ pipeline {
 
         stage('Health Check') {
             steps {
-                echo "🏥 Checking Environment..."
-
                 withCredentials([
                     [$class: 'AmazonWebServicesCredentialsBinding', credentialsId: 'aws']
                 ]) {
-
                     bat """
                     echo ===== HEALTH =====
-
                     aws elasticbeanstalk describe-environments ^
-                      --environment-names "%EB_ENV_NAME%" ^
-                      --query "Environments[0].Health" ^
-                      --output text ^
-                      --region %AWS_DEFAULT_REGION%
+                        --environment-names "%EB_ENV_NAME%" ^
+                        --query "Environments[0].Health" ^
+                        --output text ^
+                        --region %AWS_DEFAULT_REGION%
 
                     echo.
-
                     echo ===== URL =====
-
                     aws elasticbeanstalk describe-environments ^
-                      --environment-names "%EB_ENV_NAME%" ^
-                      --query "Environments[0].CNAME" ^
-                      --output text ^
-                      --region %AWS_DEFAULT_REGION%
+                        --environment-names "%EB_ENV_NAME%" ^
+                        --query "Environments[0].CNAME" ^
+                        --output text ^
+                        --region %AWS_DEFAULT_REGION%
                     """
                 }
             }
@@ -117,7 +111,6 @@ pipeline {
     }
 
     post {
-
         success {
             echo "🎉 Deployment Successful!"
         }
@@ -127,9 +120,9 @@ pipeline {
         }
 
         always {
-            bat """
+            bat '''
             if exist "%ZIP_NAME%" del /f /q "%ZIP_NAME%"
-            """
+            '''
             echo "🧹 Workspace Cleaned"
         }
     }
