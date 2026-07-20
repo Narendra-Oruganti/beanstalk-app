@@ -3,8 +3,8 @@ pipeline {
 
     environment {
         AWS_DEFAULT_REGION = 'us-east-1'
-        EB_APP_NAME        = 'beanstalk-app'         // ← Your EB Application name
-        EB_ENV_NAME        = 'beanstalk-app-env'      // ← Your EB Environment name
+        EB_APP_NAME        = 'app2'
+        EB_ENV_NAME        = 'App2-env'
         S3_BUCKET          = 'elasticbeanstalk-us-east-1-139822120014'
         ZIP_NAME           = "beanstalk-deploy-${BUILD_NUMBER}.zip"
     }
