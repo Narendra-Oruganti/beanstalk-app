@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Dashboard | Python Login App</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      min-height: 100vh;
+      background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
+      color: #fff;
+      padding: 40px 20px;
+    }
+
+    .topbar {
+      max-width: 900px;
+      margin: 0 auto 40px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .topbar .brand {
+      font-size: 18px;
+      font-weight: 700;
+      background: linear-gradient(135deg, #646cff, #9c40ff);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    .logout-btn {
+      padding: 9px 20px;
+      background: rgba(255,255,255,0.08);
+      border: 1px solid rgba(255,255,255,0.15);
+      border-radius: 10px;
+      color: #fff;
+      font-size: 13px;
+      font-weight: 500;
+      text-decoration: none;
+      transition: background 0.2s, border-color 0.2s;
+    }
+    .logout-btn:hover {
+      background: rgba(248, 113, 113, 0.15);
+      border-color: rgba(248, 113, 113, 0.4);
+      color: #f87171;
+    }
+
+    .container {
+      max-width: 900px;
+      margin: 0 auto;
+      animation: fadeIn 0.5s ease;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    .welcome-card {
+      background: rgba(255,255,255,0.05);
+      backdrop-filter: blur(20px);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 20px;
+      padding: 36px;
+      margin-bottom: 24px;
+      display: flex;
+      align-items: center;
+      gap: 20px;
+    }
+    .avatar {
+      width: 64px; height: 64px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #646cff, #9c40ff);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 28px;
+      flex-shrink: 0;
+      box-shadow: 0 8px 24px rgba(100, 108, 255, 0.4);
+    }
+    .welcome-text h2 {
+      font-size: 22px; font-weight: 700;
+      margin-bottom: 4px;
+    }
+    .welcome-text p {
+      font-size: 14px;
+      color: rgba(255,255,255,0.5);
+    }
+    .badge {
+      margin-left: auto;
+      padding: 6px 14px;
+      background: rgba(52, 211, 153, 0.15);
+      border: 1px solid rgba(52, 211, 153, 0.3);
+      border-radius: 20px;
+      font-size: 12px;
+      color: #34d399;
+      font-weight: 600;
+      white-space: nowrap;
+    }
+
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+    .stat-card {
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 16px;
+      padding: 24px;
+      transition: transform 0.2s, border-color 0.2s;
+    }
+    .stat-card:hover {
+      transform: translateY(-3px);
+      border-color: rgba(100, 108, 255, 0.3);
+    }
+    .stat-icon { font-size: 28px; margin-bottom: 12px; }
+    .stat-value { font-size: 28px; font-weight: 700; margin-bottom: 4px; }
+    .stat-label { font-size: 13px; color: rgba(255,255,255,0.4); }
+
+    .info-card {
+      background: rgba(100, 108, 255, 0.08);
+      border: 1px solid rgba(100, 108, 255, 0.2);
+      border-radius: 16px;
+      padding: 24px;
+    }
+    .info-card h3 { font-size: 15px; font-weight: 600; margin-bottom: 12px; color: rgba(255,255,255,0.8); }
+    .info-card p  { font-size: 13px; color: rgba(255,255,255,0.4); line-height: 1.7; }
+    .info-card code {
+      background: rgba(255,255,255,0.08);
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-family: monospace;
+      color: #9c40ff;
+    }
+  </style>
+</head>
+<body>
+  <div class="topbar">
+    <span class="brand">🔐 LoginApp</span>
+    <a href="/logout" class="logout-btn" id="logout-btn">Sign Out</a>
+  </div>
+
+  <div class="container">
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        {% for category, message in messages %}
+          <div style="background:rgba(52,211,153,0.1);border:1px solid rgba(52,211,153,0.25);border-radius:10px;padding:12px 16px;margin-bottom:20px;font-size:13px;color:#34d399;">{{ message }}</div>
+        {% endfor %}
+      {% endif %}
+    {% endwith %}
+
+    <div class="welcome-card">
+      <div class="avatar">👤</div>
+      <div class="welcome-text">
+        <h2>Hello, {{ username }}! 👋</h2>
+        <p>You are successfully authenticated. Welcome to your dashboard.</p>
+      </div>
+      <span class="badge">✓ Authenticated</span>
+    </div>
+
+    <div class="stats">
+      <div class="stat-card">
+        <div class="stat-icon">🚀</div>
+        <div class="stat-value">1</div>
+        <div class="stat-label">Active Sessions</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon">🔒</div>
+        <div class="stat-value">100%</div>
+        <div class="stat-label">Security Score</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon">☁️</div>
+        <div class="stat-value">AWS</div>
+        <div class="stat-label">Hosted On</div>
+      </div>
+    </div>
+
+    <div class="info-card">
+      <h3>ℹ️ About This App</h3>
+      <p>
+        This is a Python <code>Flask</code> login app with hardcoded credentials, deployed on
+        <code>AWS Elastic Beanstalk</code> via a GitHub ZIP. Session management is handled
+        server-side using Flask's built-in <code>session</code>. To log out, click <strong>Sign Out</strong> above.
+      </p>
+    </div>
+  </div>
+</body>
+</html>
