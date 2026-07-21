@@ -46,7 +46,7 @@ pipeline {
             steps {
 
                 withCredentials([
-                    [$class: 'AmazonWebServicesCredentialsBinding', credentialsId: 'aws']
+                    [$class: 'AmazonWebServicesCredentialsBinding', credentialsId: 'new']
                 ]) {
 
                     bat '''
@@ -60,7 +60,7 @@ pipeline {
             steps {
 
                 withCredentials([
-                    [$class: 'AmazonWebServicesCredentialsBinding', credentialsId: 'aws']
+                    [$class: 'AmazonWebServicesCredentialsBinding', credentialsId: 'new']
                 ]) {
 
                     bat '''
@@ -78,7 +78,7 @@ pipeline {
             steps {
 
                 withCredentials([
-                    [$class: 'AmazonWebServicesCredentialsBinding', credentialsId: 'aws']
+                    [$class: 'AmazonWebServicesCredentialsBinding', credentialsId: 'new']
                 ]) {
 
                     bat '''
@@ -99,7 +99,7 @@ pipeline {
             steps {
 
                 withCredentials([
-                    [$class: 'AmazonWebServicesCredentialsBinding', credentialsId: 'aws']
+                    [$class: 'AmazonWebServicesCredentialsBinding', credentialsId: 'new']
                 ]) {
 
                     bat '''
