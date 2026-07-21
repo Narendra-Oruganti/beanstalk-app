@@ -44,82 +44,65 @@ pipeline {
 
         stage('Upload to S3') {
             steps {
-                withCredentials([
-                    [$class: 'AmazonWebServicesCredentialsBinding', credentialsId: 'new']
-                ]) {
-                    bat '''
-                    aws s3 cp "%ZIP_NAME%" s3://%S3_BUCKET%/deployments/%ZIP_NAME% --region %AWS_DEFAULT_REGION%
-                    '''
-                }
+                bat '''
+                aws s3 cp "%ZIP_NAME%" s3://%S3_BUCKET%/deployments/%ZIP_NAME% --region %AWS_DEFAULT_REGION%
+                '''
             }
         }
 
         stage('Create Application Version') {
             steps {
-                withCredentials([
-                    [$class: 'AmazonWebServicesCredentialsBinding', credentialsId: 'new']
-                ]) {
-                    bat '''
-                    aws elasticbeanstalk create-application-version ^
-                      --application-name "%EB_APP_NAME%" ^
-                      --version-label "%VERSION_LABEL%" ^
-                      --source-bundle S3Bucket="%S3_BUCKET%",S3Key="deployments/%ZIP_NAME%" ^
-                      --region %AWS_DEFAULT_REGION%
-                    '''
-                }
+                bat '''
+                aws elasticbeanstalk create-application-version ^
+                  --application-name "%EB_APP_NAME%" ^
+                  --version-label "%VERSION_LABEL%" ^
+                  --source-bundle S3Bucket="%S3_BUCKET%",S3Key="deployments/%ZIP_NAME%" ^
+                  --region %AWS_DEFAULT_REGION%
+                '''
             }
         }
 
         stage('Deploy') {
             steps {
-                withCredentials([
-                    [$class: 'AmazonWebServicesCredentialsBinding', credentialsId: 'new']
-                ]) {
-                    bat '''
-                    aws elasticbeanstalk update-environment ^
-                      --environment-name "%EB_ENV_NAME%" ^
-                      --version-label "%VERSION_LABEL%" ^
-                      --region %AWS_DEFAULT_REGION%
+                bat '''
+                aws elasticbeanstalk update-environment ^
+                  --environment-name "%EB_ENV_NAME%" ^
+                  --version-label "%VERSION_LABEL%" ^
+                  --region %AWS_DEFAULT_REGION%
 
-                    aws elasticbeanstalk wait environment-updated ^
-                      --environment-names "%EB_ENV_NAME%" ^
-                      --region %AWS_DEFAULT_REGION%
-                    '''
-                }
+                aws elasticbeanstalk wait environment-updated ^
+                  --environment-names "%EB_ENV_NAME%" ^
+                  --region %AWS_DEFAULT_REGION%
+                '''
             }
         }
 
         stage('Health') {
             steps {
-                withCredentials([
-                    [$class: 'AmazonWebServicesCredentialsBinding', credentialsId: 'new']
-                ]) {
-                    bat '''
-                    echo ===== HEALTH =====
+                bat '''
+                echo ===== HEALTH =====
 
-                    aws elasticbeanstalk describe-environments ^
-                      --environment-names "%EB_ENV_NAME%" ^
-                      --query "Environments[0].Health" ^
-                      --output text ^
-                      --region %AWS_DEFAULT_REGION%
+                aws elasticbeanstalk describe-environments ^
+                  --environment-names "%EB_ENV_NAME%" ^
+                  --query "Environments[0].Health" ^
+                  --output text ^
+                  --region %AWS_DEFAULT_REGION%
 
-                    echo.
+                echo.
 
-                    echo ===== URL =====
+                echo ===== URL =====
 
-                    aws elasticbeanstalk describe-environments ^
-                      --environment-names "%EB_ENV_NAME%" ^
-                      --query "Environments[0].CNAME" ^
-                      --output text ^
-                      --region %AWS_DEFAULT_REGION%
-                    '''
-                }
+                aws elasticbeanstalk describe-environments ^
+                  --environment-names "%EB_ENV_NAME%" ^
+                  --query "Environments[0].CNAME" ^
+                  --output text ^
+                  --region %AWS_DEFAULT_REGION%
+                '''
             }
         }
     }
 
     post {
-
         always {
             archiveArtifacts artifacts: '*.zip', fingerprint: true
 
