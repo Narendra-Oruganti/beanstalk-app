@@ -30,6 +30,18 @@ pipeline {
             }
         }
 
+        stage('Debug AWS') {
+            steps {
+                bat '''
+                whoami
+
+                aws configure list
+
+                aws sts get-caller-identity --region us-east-1
+                '''
+            }
+        }
+
         stage('Package') {
             steps {
                 bat '''
