@@ -7,8 +7,8 @@ pipeline {
 
     environment {
         AWS_DEFAULT_REGION = 'us-east-1'
-        EB_APP_NAME        = 'app2'
-        EB_ENV_NAME        = 'App2-env'
+        EB_APP_NAME        = 'newapp'
+        EB_ENV_NAME        = 'Newapp-env'
         S3_BUCKET          = 'elasticbeanstalk-us-east-1-139822120014'
 
         VERSION_LABEL      = "${BUILD_TAG}"
