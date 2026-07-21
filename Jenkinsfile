@@ -11,7 +11,7 @@ pipeline {
         EB_ENV_NAME        = 'App2-env'
         S3_BUCKET          = 'elasticbeanstalk-us-east-1-139822120014'
 
-        VERSION_LABEL      = "v-build-${BUILD_NUMBER}"
+        VERSION_LABEL      = "${BUILD_TAG}"
         ZIP_NAME           = "beanstalk-deploy-${BUILD_NUMBER}.zip"
     }
 
@@ -44,11 +44,9 @@ pipeline {
 
         stage('Upload to S3') {
             steps {
-
                 withCredentials([
                     [$class: 'AmazonWebServicesCredentialsBinding', credentialsId: 'new']
                 ]) {
-
                     bat '''
                     aws s3 cp "%ZIP_NAME%" s3://%S3_BUCKET%/deployments/%ZIP_NAME% --region %AWS_DEFAULT_REGION%
                     '''
@@ -58,11 +56,9 @@ pipeline {
 
         stage('Create Application Version') {
             steps {
-
                 withCredentials([
                     [$class: 'AmazonWebServicesCredentialsBinding', credentialsId: 'new']
                 ]) {
-
                     bat '''
                     aws elasticbeanstalk create-application-version ^
                       --application-name "%EB_APP_NAME%" ^
@@ -76,11 +72,9 @@ pipeline {
 
         stage('Deploy') {
             steps {
-
                 withCredentials([
                     [$class: 'AmazonWebServicesCredentialsBinding', credentialsId: 'new']
                 ]) {
-
                     bat '''
                     aws elasticbeanstalk update-environment ^
                       --environment-name "%EB_ENV_NAME%" ^
@@ -97,11 +91,9 @@ pipeline {
 
         stage('Health') {
             steps {
-
                 withCredentials([
                     [$class: 'AmazonWebServicesCredentialsBinding', credentialsId: 'new']
                 ]) {
-
                     bat '''
                     echo ===== HEALTH =====
 
@@ -129,7 +121,6 @@ pipeline {
     post {
 
         always {
-
             archiveArtifacts artifacts: '*.zip', fingerprint: true
 
             bat '''
@@ -138,11 +129,11 @@ pipeline {
         }
 
         success {
-            echo 'Deployment completed.'
+            echo "Deployment completed successfully."
         }
 
         failure {
-            echo 'Deployment failed.'
+            echo "Deployment failed."
         }
     }
 }
